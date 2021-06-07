@@ -4,14 +4,15 @@
 
 #include <windows.h>
 
+import main_window;
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int ClassicWindow(HINSTANCE hInstance, int nCmdShow)
 {
     // Register the window class.
     const wchar_t CLASS_NAME[] = L"Sample Window Class";
 
-    WNDCLASS wc {
+    WNDCLASS wc{
         .lpfnWndProc = WindowProc,
         .hInstance = hInstance,
         .lpszClassName = CLASS_NAME
@@ -49,6 +50,23 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
 
     return 0;
+}
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+{
+    MainWindow main;
+    main.Create(L"TestWindow", WS_OVERLAPPEDWINDOW, 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT);
+    ShowWindow(main.Window(), nCmdShow);
+
+    MSG msg = { };
+    while (GetMessageW(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessageW(&msg);
+    }
+
+    return 0;
+
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
