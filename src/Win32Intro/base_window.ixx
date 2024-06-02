@@ -8,34 +8,6 @@ export template <class DERIVED_TYPE>
 class BaseWindow
 {
     public:
-        static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-        {
-            DERIVED_TYPE* pThis = NULL;
-
-            if (uMsg == WM_NCCREATE)
-            {
-                CREATESTRUCT* pCreate = (CREATESTRUCT*)lParam;
-                pThis = (DERIVED_TYPE*)pCreate->lpCreateParams;
-                SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)pThis);
-
-                pThis->m_hwnd = hwnd;
-            }
-            else
-            {
-                pThis = (DERIVED_TYPE*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            }
-            if (pThis)
-            {
-                return pThis->HandleMessage(uMsg, wParam, lParam);
-            }
-            else
-            {
-                return DefWindowProc(hwnd, uMsg, wParam, lParam);
-            }
-        }
-
-        BaseWindow() : m_hwnd(nullptr) { }
-
         virtual BOOL Create(
             PCWSTR lpWindowName,
             DWORD dwStyle,
@@ -48,12 +20,11 @@ class BaseWindow
             HMENU hMenu = 0
         )
         {
-            WNDCLASS wc = { 0 };
-
-            wc.lpfnWndProc = DERIVED_TYPE::WindowProc;
-            wc.hInstance = GetModuleHandle(NULL);
-            wc.lpszClassName = ClassName();
-
+            WNDCLASS wc{ 
+                .lpfnWndProc = WindowProc,
+                .hInstance = GetModuleHandle(nullptr),
+                .lpszClassName = ClassName()
+            };
             RegisterClassW(&wc);
 
             m_hwnd = CreateWindowExW(
@@ -70,16 +41,42 @@ class BaseWindow
                 GetModuleHandleW(nullptr), 
                 this
             );
-
             return m_hwnd ? true : false;
         }
 
         virtual HWND Window() const { return m_hwnd; }
+        virtual PCWSTR ClassName() const = 0;
 
     protected:
-
-        virtual PCWSTR  ClassName() const = 0;
         virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 
-        HWND m_hwnd;
+        static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+        {
+            DERIVED_TYPE* pThis = nullptr;
+
+            if (uMsg == WM_NCCREATE)
+            {
+                CREATESTRUCT* pCreate = (CREATESTRUCT*)lParam;
+                pThis = (DERIVED_TYPE*)pCreate->lpCreateParams;
+                SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)pThis);
+
+                pThis->m_hwnd = hwnd;
+            }
+            else
+            {
+                pThis = (DERIVED_TYPE*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            }
+
+            if (pThis)
+            {
+                return pThis->HandleMessage(uMsg, wParam, lParam);
+            }
+            else
+            {
+                return DefWindowProc(hwnd, uMsg, wParam, lParam);
+            }
+        }
+
+    protected:
+        HWND m_hwnd = nullptr;
 };

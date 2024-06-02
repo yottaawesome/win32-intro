@@ -4,7 +4,8 @@
 
 #include <windows.h>
 
-import main_window;
+import main_window;
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int ClassicWindow(HINSTANCE hInstance, int nCmdShow)
