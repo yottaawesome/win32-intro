@@ -216,7 +216,7 @@ export namespace TemplateWindowAdvanced
                 if (handler.Event == uMsg)
                     return handler.Fn(self, wParam, lParam);
 
-            self[uMsg](self, wParam, lParam);
+            //self[uMsg](self, wParam, lParam);
 
             return Win32::DefWindowProcW(self.m_hwnd, uMsg, wParam, lParam);
         }
