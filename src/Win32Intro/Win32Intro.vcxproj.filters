@@ -27,5 +27,8 @@
     <ClCompile Include="classic_window.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="util.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

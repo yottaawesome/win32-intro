@@ -11,6 +11,7 @@ auto wWinMain(
     int nCmdShow
 ) -> int
 {
-    TemplateWindow::Run(nCmdShow);
+    //TemplateWindow::Run(nCmdShow);
+    TemplateWindowAdvanced::Run(nCmdShow);
     return 0;
 }

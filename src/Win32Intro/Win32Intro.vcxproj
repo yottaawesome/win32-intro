@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="classic_window.ixx" />
     <ClCompile Include="template_window.ixx" />
+    <ClCompile Include="util.ixx" />
     <ClCompile Include="win32.ixx" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

@@ -39,7 +39,9 @@ export namespace Win32
 		::DefWindowProcW,
 		::FillRect,
 		::PostQuitMessage,
-		::DefWindowProcW
+		::DefWindowProcW,
+		::OutputDebugStringW,
+		::OutputDebugStringA
 		;
 
 	constexpr ::DWORD WsOverlappedWindow = WS_OVERLAPPEDWINDOW;
@@ -54,4 +56,11 @@ export namespace Win32
 	}
 
 	constexpr auto GwlpUserData = GWLP_USERDATA;
+
+	namespace ShowWindowValues
+	{
+		constexpr auto Minimise = SW_MINIMIZE;
+		constexpr auto Maximise = SW_MAXIMIZE;
+		constexpr auto Restore = SW_RESTORE;
+	}
 }
