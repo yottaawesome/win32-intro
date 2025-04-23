@@ -303,7 +303,7 @@ export namespace TemplateWindowAdvanced
             return 0;
         }
 
-        auto GetHandlers()
+        constexpr auto GetHandlers() const
         {
             return std::array{
                 EventHandler{ Win32::Messages::Destroy, OnDestroy },
@@ -311,6 +311,7 @@ export namespace TemplateWindowAdvanced
             }; 
         }
 
+        // Not used
         EventFn operator[](Win32::DWORD event) const
         {
             if (event == Win32::Messages::Destroy)
