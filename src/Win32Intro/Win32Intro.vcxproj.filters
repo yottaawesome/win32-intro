@@ -15,13 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="WinMain.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="base_window.ixx">
+    <ClCompile Include="template_window.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main_window.ixx">
+    <ClCompile Include="win32.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="classic_window.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
