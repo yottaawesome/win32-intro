@@ -162,6 +162,14 @@ export namespace TemplateWindowAdvanced
         Win32::HMENU Menu = 0;
     };
 
+    template<Win32::DWORD VMsg>
+    struct Win32Message
+    {
+        static constexpr Win32::UINT uMsg = VMsg;
+        Win32::WPARAM wParam = 0;
+        Win32::LPARAM lParam = 0;
+    };
+
     //
     //
     // BaseWindow
@@ -217,10 +225,17 @@ export namespace TemplateWindowAdvanced
                     return handler.Fn(self, wParam, lParam);
 
             //self[uMsg](self, wParam, lParam);
+            if (uMsg == Win32::Messages::Paint)
+            {
+                if constexpr (std::invocable<TDerived, decltype(self), Win32Message<Win32::Messages::Paint>>)
+                {
+
+                }
+            }
 
             return Win32::DefWindowProcW(self.m_hwnd, uMsg, wParam, lParam);
         }
-
+        
         static auto WindowProc(
             Win32::HWND hwnd,
             Win32::UINT uMsg,
