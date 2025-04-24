@@ -509,7 +509,7 @@ export namespace TemplateWindowAdvanced2
     auto Run(int nCmdShow) -> int
     {
         MainWindow main;
-        main.Create({ L"TestWindow", Win32::WsOverlappedWindow });
+        main.Create({ L"This is test!", Win32::WsOverlappedWindow });
         Win32::ShowWindow(main.Window(), nCmdShow);
 
         Win32::MSG msg{};
