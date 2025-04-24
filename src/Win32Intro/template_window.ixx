@@ -378,11 +378,13 @@ export namespace TemplateWindowAdvanced2
     struct Win32Message
     {
         static constexpr Win32::UINT uMsg = VMsg;
+        HWND Hwnd = nullptr;
         Win32::WPARAM wParam = 0;
         Win32::LPARAM lParam = 0;
     };
     struct GenericWin32Message
     {
+        HWND Hwnd = nullptr;
         Win32::UINT uMsg = 0;
         Win32::WPARAM wParam = 0;
         Win32::LPARAM lParam = 0;
@@ -424,28 +426,22 @@ export namespace TemplateWindowAdvanced2
         virtual auto ClassName() const -> std::wstring_view { return VClassName.View(); };
 
     protected:
-        using EventFn = int(*)(this TDerived&, Win32::WPARAM wParam, Win32::LPARAM lParam);
-        struct EventHandler
-        {
-            Win32::DWORD Event;
-            EventFn Fn = nullptr;
-        };
-
         auto HandleMessage(
             this auto& self,
+            Win32::HWND hwnd,
             Win32::UINT uMsg,
             Win32::WPARAM wParam,
             Win32::LPARAM lParam
         ) -> Win32::LRESULT
         {
             if (uMsg == Win32::Messages::Destroy)
-                return self.Process(Win32Message<Win32::Messages::Destroy>{wParam, lParam});
+                return self.Process(Win32Message<Win32::Messages::Destroy>{ hwnd, wParam, lParam });
             if (uMsg == Win32::Messages::Paint)
-                return self.Process(Win32Message<Win32::Messages::Paint>{wParam, lParam});
-            return self.Process(GenericWin32Message{uMsg, wParam, lParam });
+                return self.Process(Win32Message<Win32::Messages::Paint>{ hwnd, wParam, lParam });
+            return self.Process(GenericWin32Message{ hwnd, uMsg, wParam, lParam });
         }
 
-        Win32::LRESULT Process(this BaseWindow& self, const auto& args)
+        auto Process(this BaseWindow& self, const auto& args) -> Win32::LRESULT
         {
             return Win32::DefWindowProcW(self.m_hwnd, args.uMsg, args.wParam, args.lParam);
         }
@@ -467,14 +463,14 @@ export namespace TemplateWindowAdvanced2
                     reinterpret_cast<Win32::LONG_PTR>(pThis)
                 );
                 pThis->m_hwnd = hwnd;
-                return pThis->HandleMessage(uMsg, wParam, lParam);
+                return pThis->HandleMessage(hwnd, uMsg, wParam, lParam);
             }
 
             auto pThis = reinterpret_cast<TDerived*>(
                 Win32::GetWindowLongPtrW(hwnd, Win32::GwlpUserData)
             );
             return pThis
-                ? pThis->HandleMessage(uMsg, wParam, lParam)
+                ? pThis->HandleMessage(hwnd, uMsg, wParam, lParam)
                 : Win32::DefWindowProcW(hwnd, uMsg, wParam, lParam);
         }
 
