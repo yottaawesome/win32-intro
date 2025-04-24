@@ -355,3 +355,173 @@ export namespace TemplateWindowAdvanced
         return 0;
     }
 }
+
+//
+//
+//
+export namespace TemplateWindowAdvanced2
+{
+    struct CreateArgs
+    {
+        Win32::PCWSTR WindowName = nullptr;
+        Win32::DWORD Style = 0;
+        Win32::DWORD ExtendedStyle = 0;
+        int X = Win32::CwUseDefault;
+        int Y = Win32::CwUseDefault;
+        int Width = Win32::CwUseDefault;
+        int Height = Win32::CwUseDefault;
+        Win32::HWND hWndParent = 0;
+        Win32::HMENU Menu = 0;
+    };
+
+    template<Win32::DWORD VMsg>
+    struct Win32Message
+    {
+        static constexpr Win32::UINT uMsg = VMsg;
+        Win32::WPARAM wParam = 0;
+        Win32::LPARAM lParam = 0;
+    };
+    struct GenericWin32Message
+    {
+        Win32::UINT uMsg = 0;
+        Win32::WPARAM wParam = 0;
+        Win32::LPARAM lParam = 0;
+    };
+
+    //
+    //
+    // BaseWindow
+    template<typename TDerived, Util::FixedString VClassName>
+    struct BaseWindow
+    {
+        virtual auto Create(CreateArgs args) -> Win32::BOOL
+        {
+            Win32::WNDCLASS wc{
+                .lpfnWndProc = WindowProc,
+                .hInstance = Win32::GetModuleHandleW(nullptr),
+                .lpszClassName = VClassName.Data()
+            };
+            Win32::RegisterClassW(&wc);
+
+            m_hwnd = Win32::CreateWindowExW(
+                args.ExtendedStyle,
+                VClassName.Data(),
+                args.WindowName,
+                args.Style,
+                args.X,
+                args.Y,
+                args.Width,
+                args.Height,
+                args.hWndParent,
+                args.Menu,
+                Win32::GetModuleHandleW(nullptr),
+                this
+            );
+            return m_hwnd ? true : false;
+        }
+
+        virtual auto Window() const -> Win32::HWND final { return m_hwnd; }
+        virtual auto ClassName() const -> std::wstring_view { return VClassName.View(); };
+
+    protected:
+        using EventFn = int(*)(this TDerived&, Win32::WPARAM wParam, Win32::LPARAM lParam);
+        struct EventHandler
+        {
+            Win32::DWORD Event;
+            EventFn Fn = nullptr;
+        };
+
+        auto HandleMessage(
+            this auto& self,
+            Win32::UINT uMsg,
+            Win32::WPARAM wParam,
+            Win32::LPARAM lParam
+        ) -> Win32::LRESULT
+        {
+            if (uMsg == Win32::Messages::Destroy)
+                return self.Process(Win32Message<Win32::Messages::Destroy>{wParam, lParam});
+            if (uMsg == Win32::Messages::Paint)
+                return self.Process(Win32Message<Win32::Messages::Paint>{wParam, lParam});
+            return self.Process(GenericWin32Message{uMsg, wParam, lParam });
+        }
+
+        Win32::LRESULT Process(this BaseWindow& self, const auto& args)
+        {
+            return Win32::DefWindowProcW(self.m_hwnd, args.uMsg, args.wParam, args.lParam);
+        }
+
+        static auto WindowProc(
+            Win32::HWND hwnd,
+            Win32::UINT uMsg,
+            Win32::WPARAM wParam,
+            Win32::LPARAM lParam
+        ) -> Win32::LRESULT
+        {
+            if (uMsg == Win32::Messages::NcCreate)
+            {
+                auto pCreate = reinterpret_cast<Win32::CREATESTRUCT*>(lParam);
+                auto pThis = reinterpret_cast<TDerived*>(pCreate->lpCreateParams);
+                Win32::SetWindowLongPtrW(
+                    hwnd,
+                    Win32::GwlpUserData,
+                    reinterpret_cast<Win32::LONG_PTR>(pThis)
+                );
+                pThis->m_hwnd = hwnd;
+                return pThis->HandleMessage(uMsg, wParam, lParam);
+            }
+
+            auto pThis = reinterpret_cast<TDerived*>(
+                Win32::GetWindowLongPtrW(hwnd, Win32::GwlpUserData)
+            );
+            return pThis
+                ? pThis->HandleMessage(uMsg, wParam, lParam)
+                : Win32::DefWindowProcW(hwnd, uMsg, wParam, lParam);
+        }
+
+        Win32::HWND m_hwnd = nullptr;
+    };
+
+    //
+    //
+    // MainWindow
+    struct MainWindow final : BaseWindow<MainWindow, L"Sample Window Class">
+    {
+        // Required for overload resolution
+        using BaseWindow<MainWindow, L"Sample Window Class">::Process;
+
+        auto Process(Win32Message<Win32::Messages::Destroy> msg)
+            -> Win32::LRESULT
+        {
+            Win32::PostQuitMessage(0);
+            return 0;
+        }
+
+        auto Process(this auto& self, Win32Message<Win32::Messages::Paint> msg)
+            -> Win32::LRESULT
+        {
+            Win32::PAINTSTRUCT ps;
+            Win32::HDC hdc = Win32::BeginPaint(self.m_hwnd, &ps);
+            Win32::FillRect(hdc, &ps.rcPaint, (Win32::HBRUSH)(Win32::ColorWindow + 1));
+            Win32::EndPaint(self.m_hwnd, &ps);
+            return 0;
+        }
+    };
+
+    //
+    //
+    // Run()
+    auto Run(int nCmdShow) -> int
+    {
+        MainWindow main;
+        main.Create({ L"TestWindow", Win32::WsOverlappedWindow });
+        Win32::ShowWindow(main.Window(), nCmdShow);
+
+        Win32::MSG msg{};
+        while (Win32::GetMessageW(&msg, nullptr, 0, 0))
+        {
+            Win32::TranslateMessage(&msg);
+            Win32::DispatchMessageW(&msg);
+        }
+        return 0;
+    }
+}
